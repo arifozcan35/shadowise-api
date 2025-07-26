@@ -1,0 +1,13 @@
+spring:
+  data:
+    mongodb:
+      uri: "mongodb://localhost:27017/shadowise"
+
+  security:
+    user:
+      name: "admin"
+      password: "admin"
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
