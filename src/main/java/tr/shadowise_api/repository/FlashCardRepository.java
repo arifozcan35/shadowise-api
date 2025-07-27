@@ -1,0 +1,10 @@
+package tr.shadowise_api.repository;
+
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
+import tr.shadowise_api.entity.FlashCard;
+
+@Repository
+public interface FlashCardRepository extends MongoRepository<FlashCard, String> {
+    // Custom query methods can be added here if needed
+} 

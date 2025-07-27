@@ -1,9 +1,18 @@
 package tr.shadowise_api.entity;
 
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.time.LocalDateTime;
+import org.springframework.data.mongodb.core.mapping.Document;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Document(collection = "uploadedfiles")
 public class UploadedFile extends SoftDeleteEntity{
     @NotNull
     private String fileName;
