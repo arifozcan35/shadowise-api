@@ -15,6 +15,6 @@ springdoc:
 # JWT Properties
 shadowise:
   app:
-    jwtSecret: shadowiseSecretKey_123456789_shadowiseSecretKey_123456789
+    jwtSecret: oRq8/8RJaQ1Rnqd32P7m85FWfBOMqtPFcD1cby6fLOKWEHf4iLSbkAvi/H+wCsS5F2cHX2LhUqfkYRcUBFVpNQ==
     jwtExpirationMs: 3600000
-    jwtRefreshExpirationMs: 86400000 # 24 hours
+    jwtRefreshExpirationMs: 86400000

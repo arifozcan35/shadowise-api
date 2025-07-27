@@ -4,8 +4,9 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.mongodb.core.mapping.Document;
+import tr.shadowise_api.entity.enums.UserRole;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -22,7 +23,7 @@ public class User extends SoftDeleteEntity {
     @NotNull
     private String password;
     @NotNull
-    private String[] roles;
+    private String[] roles = {UserRole.USER.name()};
     @NotNull
-    private Date lastLogin;
+    private LocalDateTime lastLogin;
 }

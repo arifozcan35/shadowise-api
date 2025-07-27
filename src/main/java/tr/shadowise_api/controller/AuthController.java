@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import tr.shadowise_api.config.JwtUtils;
 import tr.shadowise_api.entity.RefreshToken;
 import tr.shadowise_api.entity.User;
-import tr.shadowise_api.entity.enums.UserRole;
 import tr.shadowise_api.exception.TokenRefreshException;
 import tr.shadowise_api.payload.request.LoginRequest;
 import tr.shadowise_api.payload.request.SignupRequest;
@@ -25,10 +24,8 @@ import tr.shadowise_api.repository.UserRepository;
 import tr.shadowise_api.service.RefreshTokenService;
 import tr.shadowise_api.service.UserService;
 
-import java.util.Date;
-import java.util.HashSet;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -62,14 +59,14 @@ public class AuthController {
         User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
         
         // Update last login time
-        user.setLastLogin(new Date());
+        user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
         
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId().toString());
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
 
         return ResponseEntity.ok(new JwtResponse(jwt,
                 refreshToken.getToken(),
-                user.getId().toString(),
+                user.getId(),
                 user.getUsername(),
                 user.getEmail(),
                 roles));
@@ -97,7 +94,7 @@ public class AuthController {
         user.setFirstName(signUpRequest.getFirstName());
         user.setLastName(signUpRequest.getLastName());
         user.setPassword(encoder.encode(signUpRequest.getPassword()));
-        user.setLastLogin(new Date());
+        user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
@@ -121,9 +118,14 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<?> logoutUser() {
         Object principle = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principle.toString() != "anonymousUser") {
-            String userId = ((User) principle).getId().toString();
-            refreshTokenService.deleteByUserId(userId);
+        if (!principle.toString().equals("anonymousUser")) {
+            // Eğer gerçek kullanıcı ise ve UserDetailsImpl ise
+            if (principle instanceof org.springframework.security.core.userdetails.User) {
+                org.springframework.security.core.userdetails.User userDetails = 
+                    (org.springframework.security.core.userdetails.User) principle;
+                User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
+                refreshTokenService.deleteByUserId(user.getId());
+            }
         }
         
         return ResponseEntity.ok(new MessageResponse("Log out successful!"));
