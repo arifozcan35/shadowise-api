@@ -42,7 +42,7 @@ public class AuthController {
     private final PasswordEncoder encoder;
     private final JwtUtils jwtUtils;
     private final RefreshTokenService refreshTokenService;
-
+ 
     @PostMapping("/sign-in")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
@@ -75,6 +75,7 @@ public class AuthController {
                 roles));
     }
 
+
     @PostMapping("/sign-up")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
@@ -97,7 +98,6 @@ public class AuthController {
         user.setLastName(signUpRequest.getLastName());
         user.setPassword(encoder.encode(signUpRequest.getPassword()));
         user.setLastLogin(new Date());
-
         userRepository.save(user);
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
