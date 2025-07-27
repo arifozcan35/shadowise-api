@@ -16,7 +16,7 @@ import java.util.Date;
 public class BaseEntity {
     @Id
     @NotNull
-    private Long Id;
+    private String Id;
     @NotNull
     private LocalDateTime CreatedAt;
     @NotNull

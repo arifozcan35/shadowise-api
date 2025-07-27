@@ -28,8 +28,6 @@ public class SignupRequest {
     @Size(min = 2, max = 50)
     private String lastName;
 
-    private Set<String> roles;
-
     @NotBlank
     @Size(min = 6, max = 40)
     private String password;
