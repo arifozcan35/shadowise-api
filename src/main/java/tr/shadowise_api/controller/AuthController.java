@@ -42,8 +42,8 @@ public class AuthController {
     private final PasswordEncoder encoder;
     private final JwtUtils jwtUtils;
     private final RefreshTokenService refreshTokenService;
-
-    @PostMapping("/signin")
+ 
+    @PostMapping("/sign-in")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
@@ -75,7 +75,8 @@ public class AuthController {
                 roles));
     }
 
-    @PostMapping("/signup")
+
+    @PostMapping("/sign-up")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             return ResponseEntity
@@ -97,23 +98,12 @@ public class AuthController {
         user.setLastName(signUpRequest.getLastName());
         user.setPassword(encoder.encode(signUpRequest.getPassword()));
         user.setLastLogin(new Date());
-
-        Set<String> strRoles = signUpRequest.getRoles();
-        String[] roles;
-
-        if (strRoles == null) {
-            roles = new String[] { UserRole.USER.name() };
-        } else {
-            roles = strRoles.toArray(new String[0]);
-        }
-
-        user.setRoles(roles);
         userRepository.save(user);
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }
 
-    @PostMapping("/refreshtoken")
+    @PostMapping("/refresh-token")
     public ResponseEntity<?> refreshtoken(@Valid @RequestBody TokenRefreshRequest request) {
         String requestRefreshToken = request.getRefreshToken();
 
@@ -128,7 +118,7 @@ public class AuthController {
                 .orElseThrow(() -> new TokenRefreshException(requestRefreshToken, "Refresh token is not in database!"));
     }
 
-    @PostMapping("/signout")
+    @PostMapping("/logout")
     public ResponseEntity<?> logoutUser() {
         Object principle = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principle.toString() != "anonymousUser") {
