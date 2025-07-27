@@ -11,3 +11,10 @@ spring:
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
+
+# JWT Properties
+shadowise:
+  app:
+    jwtSecret: shadowiseSecretKey_123456789_shadowiseSecretKey_123456789
+    jwtExpirationMs: 3600000
+    jwtRefreshExpirationMs: 86400000 # 24 hours
