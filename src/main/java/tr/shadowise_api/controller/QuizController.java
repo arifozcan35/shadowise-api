@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import tr.shadowise_api.core.response.IDataResult;
+import tr.shadowise_api.core.response.IResult;
 import tr.shadowise_api.entity.Quiz;
 import tr.shadowise_api.service.QuizService;
 
@@ -16,40 +18,74 @@ public class QuizController {
     private final QuizService quizService;
 
     @GetMapping
-    public List<Quiz> getAllQuizzes() {
-        return quizService.getAll();
+    public ResponseEntity<?> getAllQuizzes() {
+        IDataResult<List<Quiz>> result = quizService.getAll();
+        if (result.isSuccess()) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Quiz> getQuizById(@PathVariable String id) {
-        return quizService.getById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> getQuizById(@PathVariable String id) {
+        IDataResult<Quiz> result = quizService.getById(id);
+        if (result.isSuccess()) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+        }
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Quiz createQuiz(@RequestBody Quiz quiz) {
-        return quizService.create(quiz);
+    public ResponseEntity<?> createQuiz(@RequestBody Quiz quiz) {
+        IDataResult<Quiz> result = quizService.create(quiz);
+        if (result.isSuccess()) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(result);
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+        }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Quiz> updateQuiz(@PathVariable String id, @RequestBody Quiz quiz) {
-        try {
-            Quiz updatedQuiz = quizService.update(id, quiz);
-            return ResponseEntity.ok(updatedQuiz);
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<?> updateQuiz(@PathVariable String id, @RequestBody Quiz quiz) {
+        IDataResult<Quiz> result = quizService.update(id, quiz);
+        if (result.isSuccess()) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteQuiz(@PathVariable String id) {
-        try {
-            quizService.delete(id);
-            return ResponseEntity.noContent().build();
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<?> deleteQuiz(@PathVariable String id) {
+        IResult result = quizService.deleteQuiz(id);
+        if (result.isSuccess()) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
         }
+    }
+
+    @DeleteMapping("/{id}/soft")
+    public ResponseEntity<?> softDeleteQuiz(@PathVariable String id) {
+        IResult result = quizService.softDeleteQuiz(id);
+        if (result.isSuccess()) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+        }
+    }
+
+    @GetMapping("/count")
+    public ResponseEntity<?> getQuizCount() {
+        long count = quizService.getQuizCount();
+        return ResponseEntity.ok("Total quizzes: " + count);
+    }
+
+    @GetMapping("/exists/{id}")
+    public ResponseEntity<?> checkQuizExists(@PathVariable String id) {
+        boolean exists = quizService.quizExists(id);
+        return ResponseEntity.ok("Quiz exists: " + exists);
     }
 } 
