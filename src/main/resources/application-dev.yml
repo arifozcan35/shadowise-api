@@ -11,11 +11,31 @@ spring:
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
+    enabled: true
+    operationsSorter: method
+    tagsSorter: alpha
+    tryItOutEnabled: true
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+
+# Multipart file upload configuration
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 50MB
+      file-size-threshold: 2KB
 
 # Python API Configuration
 python:
   api:
     url: http://localhost:5000
+
+# AI API Configuration
+ai:
+  api:
+    url: http://localhost:8000
 
 # JWT Properties
 shadowise:

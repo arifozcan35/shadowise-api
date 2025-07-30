@@ -2,7 +2,12 @@ package tr.shadowise_api.config;
 
 import feign.Request;
 import feign.RequestInterceptor;
+import feign.codec.Encoder;
 import feign.codec.ErrorDecoder;
+import feign.form.spring.SpringFormEncoder;
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
+import org.springframework.cloud.openfeign.support.SpringEncoder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -12,11 +17,26 @@ import java.util.concurrent.TimeUnit;
 public class FeignClientConfig {
 
     @Bean
+    public Encoder feignFormEncoder(ObjectFactory<HttpMessageConverters> messageConverters) {
+        return new SpringFormEncoder(new SpringEncoder(messageConverters));
+    }
+
+    @Bean
     public RequestInterceptor requestInterceptor() {
         return requestTemplate -> {
-            // İstek başlıkları ekle
-            requestTemplate.header("Accept", "application/json");
-            requestTemplate.header("Content-Type", "application/json");
+            // Check if this is a multipart request by looking at the URL path
+            String url = requestTemplate.url();
+            boolean isMultipartRequest = url.contains("/upload-pdf") || url.contains("upload");
+            
+            if (!isMultipartRequest) {
+                // İstek başlıkları ekle (sadece multipart olmayan istekler için)
+                requestTemplate.header("Accept", "application/json");
+                requestTemplate.header("Content-Type", "application/json");
+            } else {
+                // Multipart istekler için sadece Accept header'ı ekle
+                // Content-Type'ı Feign otomatik olarak multipart/form-data yapacak
+                requestTemplate.header("Accept", "application/json");
+            }
             
             // Örnek olarak kimlik doğrulama eklenebilir
             // requestTemplate.header("Authorization", "Bearer " + jwtToken);
