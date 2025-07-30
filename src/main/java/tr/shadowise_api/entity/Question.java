@@ -1,8 +1,12 @@
 package tr.shadowise_api.entity;
 
 import jakarta.validation.constraints.NotNull;
-import lombok.Builder;
+import lombok.*;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class Question {
     @NotNull
