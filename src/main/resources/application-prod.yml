@@ -3,6 +3,11 @@ spring:
     mongodb:
       uri: "${MONGODB_URI}"
 
+# Python API Configuration
+python:
+  api:
+    url: ${PYTHON_API_URL}
+
 # JWT Properties
 shadowise:
   app:

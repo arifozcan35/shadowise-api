@@ -12,6 +12,11 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 
+# Python API Configuration
+python:
+  api:
+    url: http://localhost:5000
+
 # JWT Properties
 shadowise:
   app:
