@@ -10,6 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GenerateSummaryRequestDto {
-    private String content;
-    private String projectId;
+    private String cleaned_file_path;
+    private Integer max_words;
+    private Double temperature;
 } 

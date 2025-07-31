@@ -6,10 +6,13 @@ import org.springframework.web.multipart.MultipartFile;
 import tr.shadowise_api.client.AIClient;
 import tr.shadowise_api.core.response.IDataResult;
 import tr.shadowise_api.core.response.SuccessDataResult;
-import tr.shadowise_api.entity.FlashCard;
-import tr.shadowise_api.entity.Question;
-import tr.shadowise_api.entity.Note;
+import tr.shadowise_api.dto.response.GenerateQuestionsResponseDto;
+import tr.shadowise_api.dto.response.GenerateFlashcardsResponseDto;
+import tr.shadowise_api.dto.response.GenerateFlashcardsResponseDto.FlashcardPair;
 
+import tr.shadowise_api.entity.Question;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -29,57 +32,106 @@ public class AIService {
         return new SuccessDataResult<>(result, "PDF uploaded successfully");
     }
 
-    public IDataResult<Note> generateSummary(String content) {
+    public IDataResult<String> generateSummary(String cleaned_file_path, Integer max_words, Double temperature) {
         Map<String, Object> request = Map.of(
-            "content", content
+            "cleaned_file_path", cleaned_file_path,
+            "max_words", max_words,
+            "temperature", temperature
         );
-        Note result = aiClient.generateSummary(request);
+        String result = aiClient.generateSummary(request);
         return new SuccessDataResult<>(result, "Summary generated successfully");
     }
 
-    public IDataResult<Note> generateSummaryFromProject(String projectId) {
+    public IDataResult<GenerateQuestionsResponseDto> generateQuestions(String cleaned_file_path, int num_questions) {
         Map<String, Object> request = Map.of(
-            "project_id", projectId
+            "cleaned_file_path", cleaned_file_path,
+            "num_questions", num_questions
         );
-        Note result = aiClient.generateSummary(request);
-        return new SuccessDataResult<>(result, "Summary generated successfully from project");
+        
+        Map<String, Object> response = aiClient.generateQuestions(request);
+        GenerateQuestionsResponseDto result = new GenerateQuestionsResponseDto();
+        
+        if (response != null && response.containsKey("data")) {
+            Map<String, Object> data = (Map<String, Object>) response.get("data");
+            
+            if (data.containsKey("questions")) {
+                List<Map<String, Object>> questionsMap = (List<Map<String, Object>>) data.get("questions");
+                List<Question> questions = new ArrayList<>();
+                
+                for (Map<String, Object> questionMap : questionsMap) {
+                    Question question = new Question();
+                    question.setQuestionText((String) questionMap.get("questionText"));
+                    
+                    @SuppressWarnings("unchecked")
+                    List<String> choices = (List<String>) questionMap.get("choices");
+                    question.setCorrectAnswerIndex(((Number) questionMap.get("correctAnswerIndex")).intValue());
+                    
+                    // Convert choices to Choice entities
+                    question.setChoices(choices);
+                    
+                    questions.add(question);
+                }
+                
+                result.setQuestions(questions);
+            }
+            
+            if (data.containsKey("num_questions")) {
+                result.setNum_questions(((Number) data.get("num_questions")).intValue());
+            }
+            
+            if (data.containsKey("file_path")) {
+                result.setFile_path((String) data.get("file_path"));
+            }
+        }
+        
+        String message = "Questions generated successfully";
+        if (response != null && response.containsKey("message")) {
+            message = (String) response.get("message");
+        }
+        
+        return new SuccessDataResult<>(result, message);
     }
 
-    public IDataResult<List<Question>> generateQuestions(String content, int questionCount, String difficulty) {
+    public IDataResult<GenerateFlashcardsResponseDto> generateFlashcards(String cleaned_file_path, int num_pairs) {
         Map<String, Object> request = Map.of(
-            "content", content,
-            "question_count", questionCount,
-            "difficulty", difficulty
+            "cleaned_file_path", cleaned_file_path,
+            "num_pairs", num_pairs
         );
-        List<Question> result = aiClient.generateQuestions(request);
-        return new SuccessDataResult<>(result, "Questions generated successfully");
-    }
-
-    public IDataResult<List<Question>> generateQuestionsFromProject(String projectId, int questionCount, String difficulty) {
-        Map<String, Object> request = Map.of(
-            "project_id", projectId,
-            "question_count", questionCount,
-            "difficulty", difficulty
-        );
-        List<Question> result = aiClient.generateQuestions(request);
-        return new SuccessDataResult<>(result, "Questions generated successfully from project");
-    }
-
-    public IDataResult<FlashCard> generateFlashcards(String content, int cardCount) {
-        Map<String, Object> request = Map.of(
-            "content", content,
-            "card_count", cardCount
-        );
-        FlashCard result = aiClient.generateFlashcards(request);
-        return new SuccessDataResult<>(result, "Flashcards generated successfully");
-    }
-
-    public IDataResult<FlashCard> generateFlashcardsFromProject(String projectId, int cardCount) {
-        Map<String, Object> request = Map.of(
-            "project_id", projectId,
-            "card_count", cardCount
-        );
-        FlashCard result = aiClient.generateFlashcards(request);
-        return new SuccessDataResult<>(result, "Flashcards generated successfully from project");
+        
+        Map<String, Object> response = aiClient.generateFlashcards(request);
+        GenerateFlashcardsResponseDto result = new GenerateFlashcardsResponseDto();
+        
+        if (response != null && response.containsKey("data")) {
+            Map<String, Object> data = (Map<String, Object>) response.get("data");
+            
+            if (data.containsKey("flashcards")) {
+                List<Map<String, Object>> flashcardsMap = (List<Map<String, Object>>) data.get("flashcards");
+                List<FlashcardPair> flashcards = new ArrayList<>();
+                
+                for (Map<String, Object> flashcardMap : flashcardsMap) {
+                    FlashcardPair flashcard = new FlashcardPair();
+                    flashcard.setQuestion((String) flashcardMap.get("question"));
+                    flashcard.setAnswer((String) flashcardMap.get("answer"));
+                    flashcards.add(flashcard);
+                }
+                
+                result.setFlashcards(flashcards);
+            }
+            
+            if (data.containsKey("num_pairs")) {
+                result.setNum_pairs(((Number) data.get("num_pairs")).intValue());
+            }
+            
+            if (data.containsKey("file_path")) {
+                result.setFile_path((String) data.get("file_path"));
+            }
+        }
+        
+        String message = num_pairs + " adet flashcard başarıyla oluşturuldu";
+        if (response != null && response.containsKey("message")) {
+            message = (String) response.get("message");
+        }
+        
+        return new SuccessDataResult<>(result, message);
     }
 } 

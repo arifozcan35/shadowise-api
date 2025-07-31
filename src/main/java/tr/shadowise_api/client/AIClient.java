@@ -4,11 +4,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import tr.shadowise_api.entity.FlashCard;
-import tr.shadowise_api.entity.Question;
-import tr.shadowise_api.entity.Note;
 
-import java.util.List;
 import java.util.Map;
 
 @FeignClient(
@@ -24,12 +20,12 @@ public interface AIClient {
     @PostMapping(value = "/api/upload-pdf", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     Map<String, Object> uploadPdf(@RequestPart("file") MultipartFile file);
     
-    @PostMapping("/api/generate-summary")
-    Note generateSummary(@RequestBody Map<String, Object> request);
+    @PostMapping(value = "/api/generate-summary", produces = "text/markdown;charset=utf-8")
+    String generateSummary(@RequestBody Map<String, Object> request);
     
     @PostMapping("/api/generate-questions")
-    List<Question> generateQuestions(@RequestBody Map<String, Object> request);
+    Map<String, Object> generateQuestions(@RequestBody Map<String, Object> request);
     
     @PostMapping("/api/generate-flashcards")
-    FlashCard generateFlashcards(@RequestBody Map<String, Object> request);
+    Map<String, Object> generateFlashcards(@RequestBody Map<String, Object> request);
 }

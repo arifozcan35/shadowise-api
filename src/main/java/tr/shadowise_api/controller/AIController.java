@@ -16,12 +16,10 @@ import tr.shadowise_api.core.response.IDataResult;
 import tr.shadowise_api.dto.request.GenerateFlashcardsRequestDto;
 import tr.shadowise_api.dto.request.GenerateQuestionsRequestDto;
 import tr.shadowise_api.dto.request.GenerateSummaryRequestDto;
-import tr.shadowise_api.entity.FlashCard;
-import tr.shadowise_api.entity.Question;
-import tr.shadowise_api.entity.Note;
+import tr.shadowise_api.dto.response.GenerateFlashcardsResponseDto;
+import tr.shadowise_api.dto.response.GenerateQuestionsResponseDto;
 import tr.shadowise_api.service.AIService;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -59,84 +57,49 @@ public class AIController {
         return ResponseEntity.ok(aiService.uploadPdf(file));
     }
 
-    @Operation(summary = "Generate Summary", description = "Generate a summary from content or project")
+    @Operation(summary = "Generate Summary", description = "Generate a summary from cleaned file")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Summary generated successfully",
                 content = @Content(mediaType = "application/json",
-                        schema = @Schema(implementation = Note.class))),
+                        schema = @Schema(implementation = String.class))),
         @ApiResponse(responseCode = "400", description = "Invalid request data"),
         @ApiResponse(responseCode = "500", description = "Summary generation failed")
     })
     @PostMapping("/generate-summary")
-    public ResponseEntity<IDataResult<Note>> generateSummary(@RequestBody GenerateSummaryRequestDto request) {
-        if (request.getProjectId() != null && !request.getProjectId().isEmpty()) {
-            return ResponseEntity.ok(aiService.generateSummaryFromProject(request.getProjectId()));
-        } else {
-            return ResponseEntity.ok(aiService.generateSummary(request.getContent()));
-        }
+    public ResponseEntity<IDataResult<String>> generateSummary(@RequestBody GenerateSummaryRequestDto request) {
+        return ResponseEntity.ok(aiService.generateSummary(
+                request.getCleaned_file_path(), 
+                request.getMax_words(), 
+                request.getTemperature()));
     }
 
-    @PostMapping("/generate-summary/project/{projectId}")
-    public ResponseEntity<IDataResult<Note>> generateSummaryFromProject(@PathVariable String projectId) {
-        return ResponseEntity.ok(aiService.generateSummaryFromProject(projectId));
-    }
-
-    @Operation(summary = "Generate Questions", description = "Generate quiz questions from content or project")
+    @Operation(summary = "Generate Questions", description = "Generate quiz questions from content")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Questions generated successfully",
                 content = @Content(mediaType = "application/json",
-                        schema = @Schema(implementation = Question.class))),
+                        schema = @Schema(implementation = GenerateQuestionsResponseDto.class))),
         @ApiResponse(responseCode = "400", description = "Invalid request data"),
         @ApiResponse(responseCode = "500", description = "Question generation failed")
     })
     @PostMapping("/generate-questions")
-    public ResponseEntity<IDataResult<List<Question>>> generateQuestions(@RequestBody GenerateQuestionsRequestDto request) {
-        if (request.getProjectId() != null && !request.getProjectId().isEmpty()) {
-            return ResponseEntity.ok(aiService.generateQuestionsFromProject(
-                    request.getProjectId(), 
-                    request.getQuestionCount(), 
-                    request.getDifficulty()));
-        } else {
-            return ResponseEntity.ok(aiService.generateQuestions(
-                    request.getContent(), 
-                    request.getQuestionCount(), 
-                    request.getDifficulty()));
-        }
+    public ResponseEntity<IDataResult<GenerateQuestionsResponseDto>> generateQuestions(@RequestBody GenerateQuestionsRequestDto request) {
+        return ResponseEntity.ok(aiService.generateQuestions(
+                request.getCleaned_file_path(),
+                request.getNum_questions()));
     }
 
-    @PostMapping("/generate-questions/project/{projectId}")
-    public ResponseEntity<IDataResult<List<Question>>> generateQuestionsFromProject(
-            @PathVariable String projectId,
-            @RequestParam(defaultValue = "5") int questionCount,
-            @RequestParam(defaultValue = "medium") String difficulty) {
-        return ResponseEntity.ok(aiService.generateQuestionsFromProject(projectId, questionCount, difficulty));
-    }
-
-    @Operation(summary = "Generate Flashcards", description = "Generate flashcards from content or project")
+    @Operation(summary = "Generate Flashcards", description = "Generate flashcards from content")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Flashcards generated successfully",
                 content = @Content(mediaType = "application/json",
-                        schema = @Schema(implementation = FlashCard.class))),
+                        schema = @Schema(implementation = GenerateFlashcardsResponseDto.class))),
         @ApiResponse(responseCode = "400", description = "Invalid request data"),
         @ApiResponse(responseCode = "500", description = "Flashcard generation failed")
     })
     @PostMapping("/generate-flashcards")
-    public ResponseEntity<IDataResult<FlashCard>> generateFlashcards(@RequestBody GenerateFlashcardsRequestDto request) {
-        if (request.getProjectId() != null && !request.getProjectId().isEmpty()) {
-            return ResponseEntity.ok(aiService.generateFlashcardsFromProject(
-                    request.getProjectId(), 
-                    request.getCardCount()));
-        } else {
-            return ResponseEntity.ok(aiService.generateFlashcards(
-                    request.getContent(), 
-                    request.getCardCount()));
-        }
-    }
-
-    @PostMapping("/generate-flashcards/project/{projectId}")
-    public ResponseEntity<IDataResult<FlashCard>> generateFlashcardsFromProject(
-            @PathVariable String projectId,
-            @RequestParam(defaultValue = "10") int cardCount) {
-        return ResponseEntity.ok(aiService.generateFlashcardsFromProject(projectId, cardCount));
+    public ResponseEntity<IDataResult<GenerateFlashcardsResponseDto>> generateFlashcards(@RequestBody GenerateFlashcardsRequestDto request) {
+        return ResponseEntity.ok(aiService.generateFlashcards(
+                request.getCleaned_file_path(), 
+                request.getNum_pairs()));
     }
 } 

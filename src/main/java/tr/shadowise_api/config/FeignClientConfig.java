@@ -45,8 +45,8 @@ public class FeignClientConfig {
 
     @Bean
     public Request.Options requestOptions() {
-        // Zaman aşımı sürelerini ayarlama: 5 saniye bağlantı, 15 saniye okuma
-        return new Request.Options(5, TimeUnit.SECONDS, 15, TimeUnit.SECONDS, true);
+        // Increase timeouts: 10 seconds for connection, 60 seconds for read
+        return new Request.Options(10, TimeUnit.SECONDS, 60, TimeUnit.SECONDS, true);
     }
 
     @Bean

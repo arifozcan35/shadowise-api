@@ -3,6 +3,8 @@ package tr.shadowise_api.entity;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -10,9 +12,9 @@ import lombok.*;
 @Builder
 public class Question {
     @NotNull
-    private String text;
+    private String questionText;
     @NotNull
-    private int answer;
+    private int correctAnswerIndex;
     @NotNull
-    private Choice[] choices;
+    private List<String> choices;
 }
