@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import tr.shadowise_api.core.response.*;
 import tr.shadowise_api.dto.request.ProjectCreateRequestDto;
+import tr.shadowise_api.dto.response.DashboardStatsResponseDto;
 import tr.shadowise_api.entity.Project;
 import tr.shadowise_api.entity.User;
 import tr.shadowise_api.repository.ProjectRepository;
@@ -220,5 +221,27 @@ public class ProjectService {
      */
     public long getProjectCount() {
         return projectRepository.count();
+    }
+    
+    /**
+     * Get dashboard statistics
+     * Returns total projects count and total documents count
+     */
+    public IDataResult<DashboardStatsResponseDto> getDashboardStats() {
+        try {
+            List<Project> projects = projectRepository.findAll();
+            long totalProjects = projects.size();
+            
+            // Calculate total documents across all projects
+            long totalDocuments = projects.stream()
+                    .filter(project -> project.getDocuments() != null)
+                    .mapToLong(project -> project.getDocuments().length)
+                    .sum();
+            
+            DashboardStatsResponseDto stats = new DashboardStatsResponseDto(totalProjects, totalDocuments);
+            return new SuccessDataResult<>(stats, "Dashboard statistics retrieved successfully");
+        } catch (Exception e) {
+            return new ErrorDataResult<>(null, "Failed to retrieve dashboard statistics: " + e.getMessage());
+        }
     }
 }

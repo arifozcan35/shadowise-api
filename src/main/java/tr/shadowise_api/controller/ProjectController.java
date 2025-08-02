@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import tr.shadowise_api.core.response.IDataResult;
 import tr.shadowise_api.core.response.IResult;
 import tr.shadowise_api.dto.request.ProjectCreateRequestDto;
+import tr.shadowise_api.dto.response.DashboardStatsResponseDto;
 import tr.shadowise_api.entity.Project;
 import tr.shadowise_api.entity.User;
 import tr.shadowise_api.service.ProjectService;
@@ -162,5 +163,15 @@ public class ProjectController {
     public ResponseEntity<?> checkProjectExists(@PathVariable String id) {
         boolean exists = projectService.projectExists(id);
         return ResponseEntity.ok("Project exists: " + exists);
+    }
+    
+    @GetMapping("/dashboard-stats")
+    public ResponseEntity<?> getDashboardStats() {
+        IDataResult<DashboardStatsResponseDto> result = projectService.getDashboardStats();
+        if (result.isSuccess()) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        }
     }
 }
