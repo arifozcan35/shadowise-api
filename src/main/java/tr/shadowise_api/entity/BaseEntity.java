@@ -16,9 +16,9 @@ import java.util.Date;
 public class BaseEntity {
     @Id
     @NotNull
-    private String Id;
+    private String id;
     @NotNull
-    private LocalDateTime CreatedAt;
+    private LocalDateTime createdAt;
     @NotNull
-    private LocalDateTime UpdatedAt;
+    private LocalDateTime updatedAt;
 }

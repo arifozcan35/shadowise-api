@@ -11,5 +11,5 @@ import java.util.Date;
 @Setter
 public class SoftDeleteEntity extends BaseEntity{
     @NotNull
-    private LocalDateTime DeletedAt;
+    private LocalDateTime deletedAt;
 }
