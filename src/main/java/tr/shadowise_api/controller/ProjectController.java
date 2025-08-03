@@ -194,13 +194,27 @@ public class ProjectController {
                     
                     // Get file path from the AI service response
                     Map<String, Object> data = uploadResult.getData();
-                    if (data.containsKey("cleaned_file_path")) {
-                        uploadedFile.setFilePath((String) data.get("cleaned_file_path"));
-                    } else if (data.containsKey("file_path")) {
-                        uploadedFile.setFilePath((String) data.get("file_path"));
+                    String filePath = "unknown";
+                    
+                    // Check for data structure
+                    if (data.containsKey("data") && data.get("data") instanceof Map) {
+                        Map<String, Object> innerData = (Map<String, Object>) data.get("data");
+                        
+                        if (innerData.containsKey("cleaned_file_path")) {
+                            filePath = (String) innerData.get("cleaned_file_path");
+                        } else if (innerData.containsKey("file_path")) {
+                            filePath = (String) innerData.get("file_path");
+                        }
                     } else {
-                        uploadedFile.setFilePath("unknown"); // Default value if path not found
+                        // Direct check on the main data map
+                        if (data.containsKey("cleaned_file_path")) {
+                            filePath = (String) data.get("cleaned_file_path");
+                        } else if (data.containsKey("file_path")) {
+                            filePath = (String) data.get("file_path");
+                        }
                     }
+                    
+                    uploadedFile.setFilePath(filePath);
                     
                     // Associate with the project using projectId
                     uploadedFile.setProjectId(project.getId());
