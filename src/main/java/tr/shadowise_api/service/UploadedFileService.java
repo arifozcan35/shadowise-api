@@ -56,7 +56,7 @@ public class UploadedFileService {
                 uploadedFile.setFileName(newUploadedFile.getFileName());
                 uploadedFile.setFileType(newUploadedFile.getFileType());
                 uploadedFile.setFilePath(newUploadedFile.getFilePath());
-                uploadedFile.setProject(newUploadedFile.getProject());
+                uploadedFile.setProjectId(newUploadedFile.getProjectId());
                 uploadedFile.setUpdatedAt(LocalDateTime.now());
                 
                 UploadedFile updatedFile = uploadedFileRepository.save(uploadedFile);
