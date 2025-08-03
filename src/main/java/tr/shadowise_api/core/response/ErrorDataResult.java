@@ -17,4 +17,8 @@ public class ErrorDataResult<T> implements IDataResult<T>{
     public boolean isSuccess() {
         return success;
     }
+    
+    public T getData() {
+        return data;
+    }
 }

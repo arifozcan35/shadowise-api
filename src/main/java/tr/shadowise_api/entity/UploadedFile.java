@@ -21,5 +21,5 @@ public class UploadedFile extends SoftDeleteEntity{
     @NotNull
     private String filePath; // local or S3 url
     @NotNull
-    private Project project;
+    private String projectId;
 }

@@ -6,10 +6,12 @@ import tr.shadowise_api.core.response.*;
 import tr.shadowise_api.dto.request.ProjectCreateRequestDto;
 import tr.shadowise_api.dto.response.DashboardStatsResponseDto;
 import tr.shadowise_api.entity.Project;
+import tr.shadowise_api.entity.UploadedFile;
 import tr.shadowise_api.entity.User;
 import tr.shadowise_api.repository.ProjectRepository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,7 +21,7 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
 
     /**
-     * Create a new project
+     * Create a new project from ProjectCreateRequestDto
      */
     public IDataResult<Project> createProject(ProjectCreateRequestDto requestDto, User owner) {
         try {
@@ -83,6 +85,52 @@ public class ProjectService {
             return new SuccessDataResult<>(projects, "Projects retrieved successfully");
         } catch (Exception e) {
             return new ErrorDataResult<>(null, "Failed to retrieve projects: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Create a new project with title and description
+     */
+    public IDataResult<Project> createProject(String title, String description, User owner) {
+        try {
+            Project project = new Project();
+            project.setTitle(title);
+            project.setDescription(description);
+            project.setOwner(owner);
+            project.setCreatedAt(LocalDateTime.now());
+            project.setUpdatedAt(LocalDateTime.now());
+            
+            // Initialize empty arrays for tags, documents, and insights
+            project.setTags(new String[0]);
+            project.setDocuments(new String[0]);
+            project.setInsights(new String[0]);
+            project.setUploadedFiles(new ArrayList<>()); // Initialize empty list for uploaded files
+            
+            Project savedProject = projectRepository.save(project);
+            return new SuccessDataResult<>(savedProject, "Project created successfully");
+        } catch (Exception e) {
+            return new ErrorDataResult<>(null, "Failed to create project: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Update project files
+     */
+    public IDataResult<Project> updateProjectFiles(String id, List<UploadedFile> uploadedFiles) {
+        try {
+            Optional<Project> existingProject = projectRepository.findById(id);
+            if (existingProject.isPresent()) {
+                Project project = existingProject.get();
+                project.setUploadedFiles(uploadedFiles);
+                project.setUpdatedAt(LocalDateTime.now());
+                
+                Project updatedProject = projectRepository.save(project);
+                return new SuccessDataResult<>(updatedProject, "Project files updated successfully");
+            } else {
+                return new ErrorDataResult<>(null, "Project not found with id: " + id);
+            }
+        } catch (Exception e) {
+            return new ErrorDataResult<>(null, "Failed to update project files: " + e.getMessage());
         }
     }
 

@@ -8,6 +8,10 @@ public class SuccessDataResult<T> implements IDataResult<T>{
     public boolean isSuccess() {
         return success;
     }
+    
+    public T getData() {
+        return data;
+    }
 
     public SuccessDataResult (T data) {
         this.data = data;
