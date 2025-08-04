@@ -13,13 +13,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tr.shadowise_api.core.response.ErrorDataResult;
 import tr.shadowise_api.core.response.IDataResult;
-import tr.shadowise_api.entity.Project;
-import tr.shadowise_api.entity.UploadedFile;
+import tr.shadowise_api.entity.Summary;
 import tr.shadowise_api.service.AIService;
-import tr.shadowise_api.service.ProjectService;
+import tr.shadowise_api.service.SummaryService;
 import tr.shadowise_api.service.UploadedFileService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/insights")
@@ -30,25 +27,31 @@ public class InsightController {
 
     private final AIService aiService;
     private final UploadedFileService uploadedFileService;
-    private final ProjectService projectService;
+    private final SummaryService summaryService;
 
-    @Operation(summary = "Generate Document Summary", description = "Generate summary for previously uploaded file")
+    @Operation(summary = "Generate Document Summary", description = "Generate summary for previously uploaded file and save it to database")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Summary generated successfully",
                 content = @Content(mediaType = "application/json",
-                        schema = @Schema(implementation = String.class))),
+                        schema = @Schema(implementation = Summary.class))),
         @ApiResponse(responseCode = "400", description = "Invalid file ID or request data"),
         @ApiResponse(responseCode = "404", description = "File not found"),
         @ApiResponse(responseCode = "500", description = "Processing failed")
     })
     @PostMapping(value = "/generate-summary")
-    public ResponseEntity<IDataResult<String>> generateSummaryFromUpload(
+    public ResponseEntity<IDataResult<Summary>> generateSummaryFromUpload(
             @Parameter(description = "File ID to summarize", required = true)
             @RequestParam("fileId") String fileId,
             @Parameter(description = "Maximum words in summary (optional)")
             @RequestParam(required = false, defaultValue = "500") Integer maxWords,
             @Parameter(description = "Temperature for AI generation (optional)")
             @RequestParam(required = false, defaultValue = "0.7") Double temperature) {
+        
+        // Check if summary already exists with these parameters
+        IDataResult<Summary> existingSummary = summaryService.getSummaryByFileIdAndParameters(fileId, maxWords, temperature);
+        if (existingSummary.isSuccess()) {
+            return ResponseEntity.ok(existingSummary);
+        }
         
         // Get the API file path from the uploaded file
         String apiFilePath = uploadedFileService.getApiFilePath(fileId);
@@ -58,63 +61,45 @@ public class InsightController {
                 .body(new ErrorDataResult<>(null, "File not found or API file path is not available"));
         }
         
-        // Generate and return the summary using the cleaned file path
-        return ResponseEntity.ok(aiService.generateSummary(apiFilePath, maxWords, temperature));
+        // Generate summary
+        IDataResult<String> summaryResult = aiService.generateSummary(apiFilePath, maxWords, temperature);
+        if (!summaryResult.isSuccess()) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorDataResult<>(null, "Failed to generate summary"));
+        }
+        
+        // Save summary to database
+        Summary summary = new Summary();
+        summary.setContent(summaryResult.getData());
+        summary.setFileId(fileId);
+        summary.setMaxWords(maxWords);
+        summary.setTemperature(temperature);
+        
+        // Get and set the project ID
+        String projectId = uploadedFileService.getProjectId(fileId);
+        summary.setProjectId(projectId);
+        
+        IDataResult<Summary> savedSummary = summaryService.saveSummary(summary);
+        return ResponseEntity.ok(savedSummary);
     }
     
-    @Operation(summary = "Generate Project Document Summary", description = "Generate summary for a file in a project")
+    @Operation(summary = "Get Summary By ID", description = "Retrieve a previously generated summary by its ID")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Summary generated successfully",
+        @ApiResponse(responseCode = "200", description = "Summary retrieved successfully",
                 content = @Content(mediaType = "application/json",
-                        schema = @Schema(implementation = String.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid project ID"),
-        @ApiResponse(responseCode = "404", description = "Project not found or has no files"),
-        @ApiResponse(responseCode = "500", description = "Processing failed")
+                        schema = @Schema(implementation = Summary.class))),
+        @ApiResponse(responseCode = "404", description = "Summary not found")
     })
-    @PostMapping(value = "/project-summary")
-    public ResponseEntity<IDataResult<String>> generateProjectSummary(
-            @Parameter(description = "Project ID", required = true)
-            @RequestParam("projectId") String projectId,
-            @Parameter(description = "File index in project (defaults to first file)", required = false)
-            @RequestParam(required = false, defaultValue = "0") Integer fileIndex,
-            @Parameter(description = "Maximum words in summary (optional)")
-            @RequestParam(required = false, defaultValue = "500") Integer maxWords,
-            @Parameter(description = "Temperature for AI generation (optional)")
-            @RequestParam(required = false, defaultValue = "0.7") Double temperature) {
+    @GetMapping("/file-summary/{id}")
+    public ResponseEntity<IDataResult<Summary>> getSummaryById(
+            @Parameter(description = "Summary ID", required = true)
+            @PathVariable String id) {
         
-        // Get the project
-        IDataResult<Project> projectResult = projectService.getProjectById(projectId);
-        
-        if (!projectResult.isSuccess() || projectResult.getData() == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(new ErrorDataResult<>(null, "Project not found with ID: " + projectId));
+        IDataResult<Summary> summary = summaryService.getSummaryById(id);
+        if (summary.isSuccess()) {
+            return ResponseEntity.ok(summary);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(summary);
         }
-        
-        // Get the project files
-        Project project = projectResult.getData();
-        List<UploadedFile> files = project.getUploadedFiles();
-        
-        if (files == null || files.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(new ErrorDataResult<>(null, "Project has no uploaded files"));
-        }
-        
-        // Check if fileIndex is valid
-        if (fileIndex < 0 || fileIndex >= files.size()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorDataResult<>(null, "Invalid file index: " + fileIndex));
-        }
-        
-        // Get the file at the specified index
-        UploadedFile file = files.get(fileIndex);
-        String apiFilePath = file.getApiFilePath();
-        
-        if (apiFilePath == null || apiFilePath.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(new ErrorDataResult<>(null, "API file path not available for the selected file"));
-        }
-        
-        // Generate and return the summary using the cleaned file path
-        return ResponseEntity.ok(aiService.generateSummary(apiFilePath, maxWords, temperature));
     }
 }

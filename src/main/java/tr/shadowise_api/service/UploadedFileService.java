@@ -171,4 +171,12 @@ public class UploadedFileService {
         Optional<UploadedFile> fileOptional = uploadedFileRepository.findById(id);
         return fileOptional.map(UploadedFile::getApiFilePath).orElse(null);
     }
+    
+    /**
+     * Get project ID of a file
+     */
+    public String getProjectId(String fileId) {
+        Optional<UploadedFile> fileOptional = uploadedFileRepository.findById(fileId);
+        return fileOptional.map(UploadedFile::getProjectId).orElse(null);
+    }
 } 
