@@ -1,11 +1,16 @@
 package tr.shadowise_api.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import tr.shadowise_api.core.response.*;
 import tr.shadowise_api.entity.UploadedFile;
 import tr.shadowise_api.repository.UploadedFileRepository;
 
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -56,6 +61,7 @@ public class UploadedFileService {
                 uploadedFile.setFileName(newUploadedFile.getFileName());
                 uploadedFile.setFileType(newUploadedFile.getFileType());
                 uploadedFile.setFilePath(newUploadedFile.getFilePath());
+                uploadedFile.setApiFilePath(newUploadedFile.getApiFilePath());
                 uploadedFile.setProjectId(newUploadedFile.getProjectId());
                 uploadedFile.setUpdatedAt(LocalDateTime.now());
                 
@@ -118,5 +124,51 @@ public class UploadedFileService {
      */
     public long getFileCount() {
         return uploadedFileRepository.count();
+    }
+    
+    /**
+     * Load file as Resource for download
+     */
+    public IDataResult<Resource> loadFileAsResource(String id) {
+        try {
+            Optional<UploadedFile> fileOptional = uploadedFileRepository.findById(id);
+            if (!fileOptional.isPresent()) {
+                return new ErrorDataResult<>(null, "File not found with id: " + id);
+            }
+            
+            UploadedFile file = fileOptional.get();
+            String filePath = file.getFilePath();
+            
+            try {
+                Path path = Paths.get(filePath);
+                Resource resource = new UrlResource(path.toUri());
+                
+                if (resource.exists()) {
+                    return new SuccessDataResult<>(resource, "File loaded successfully");
+                } else {
+                    return new ErrorDataResult<>(null, "File not found at path: " + filePath);
+                }
+            } catch (MalformedURLException ex) {
+                return new ErrorDataResult<>(null, "Error loading file: " + ex.getMessage());
+            }
+        } catch (Exception e) {
+            return new ErrorDataResult<>(null, "Failed to load file: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Get original file name (without path)
+     */
+    public String getOriginalFileName(String id) {
+        Optional<UploadedFile> fileOptional = uploadedFileRepository.findById(id);
+        return fileOptional.map(UploadedFile::getFileName).orElse("unknown");
+    }
+    
+    /**
+     * Get API file path for AI processing
+     */
+    public String getApiFilePath(String id) {
+        Optional<UploadedFile> fileOptional = uploadedFileRepository.findById(id);
+        return fileOptional.map(UploadedFile::getApiFilePath).orElse(null);
     }
 } 

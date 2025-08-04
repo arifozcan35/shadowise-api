@@ -10,17 +10,22 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import tr.shadowise_api.core.response.IDataResult;
 import tr.shadowise_api.core.response.IResult;
+import tr.shadowise_api.core.response.SuccessDataResult;
 import tr.shadowise_api.dto.request.ProjectCreateRequestDto;
 import tr.shadowise_api.dto.response.DashboardStatsResponseDto;
+import tr.shadowise_api.dto.response.ProjectResponseDto;
 import tr.shadowise_api.entity.Project;
-import tr.shadowise_api.entity.User;
-import tr.shadowise_api.service.ProjectService;
-import tr.shadowise_api.service.UserService;
-import tr.shadowise_api.service.AIService;
 import tr.shadowise_api.entity.UploadedFile;
+import tr.shadowise_api.entity.User;
+import tr.shadowise_api.service.AIService;
+import tr.shadowise_api.service.ProjectService;
+import tr.shadowise_api.service.UploadedFileService;
+import tr.shadowise_api.service.UserService;
+import tr.shadowise_api.utils.FileUtils;
 
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -30,6 +35,8 @@ public class ProjectController {
     private final ProjectService projectService;
     private final UserService userService;
     private final AIService aiService;
+    private final UploadedFileService uploadedFileService;
+    private final FileUtils fileUtils;
 
     @GetMapping
     public ResponseEntity<?> getAllProjects() {
@@ -183,42 +190,67 @@ public class ProjectController {
             
             // Process each file
             for (MultipartFile file : files) {
-                // Use the AI service to upload PDF
-                IDataResult<Map<String, Object>> uploadResult = aiService.uploadPdf(file);
-                
-                if (uploadResult.isSuccess() && uploadResult.getData() != null) {
-                    // Create an UploadedFile entity from the result
+                try {
+                    // Save the original file to the file system
+                    String originalFilePath = fileUtils.storeFile(file);
+                    
+                    // Use the AI service to upload PDF (for AI processing)
+                    IDataResult<Map<String, Object>> uploadResult = aiService.uploadPdf(file);
+                    
+                    // Create an UploadedFile entity
                     UploadedFile uploadedFile = new UploadedFile();
                     uploadedFile.setFileName(file.getOriginalFilename());
                     uploadedFile.setFileType(file.getContentType());
+                    uploadedFile.setProjectId(project.getId());
+                    uploadedFile.setCreatedAt(LocalDateTime.now());
+                    uploadedFile.setUpdatedAt(LocalDateTime.now());
                     
-                    // Get file path from the AI service response
-                    Map<String, Object> data = uploadResult.getData();
-                    String filePath = "unknown";
+                    // Use the original file path for downloads
+                    uploadedFile.setFilePath(originalFilePath);
                     
-                    // Check for data structure
-                    if (data.containsKey("data") && data.get("data") instanceof Map) {
-                        Map<String, Object> innerData = (Map<String, Object>) data.get("data");
+                    // If AI processing was successful, store the API file path as well
+                    if (uploadResult.isSuccess() && uploadResult.getData() != null) {
+                        // Get AI processing file path from the AI service response
+                        Map<String, Object> data = uploadResult.getData();
+                        String apiFilePath = null;
                         
-                        if (innerData.containsKey("cleaned_file_path")) {
-                            filePath = (String) innerData.get("cleaned_file_path");
-                        } else if (innerData.containsKey("file_path")) {
-                            filePath = (String) innerData.get("file_path");
+                        // Check for data structure
+                        if (data.containsKey("data") && data.get("data") instanceof Map) {
+                            @SuppressWarnings("unchecked")
+                            Map<String, Object> innerData = (Map<String, Object>) data.get("data");
+                            
+                            if (innerData.containsKey("cleaned_file_path")) {
+                                apiFilePath = (String) innerData.get("cleaned_file_path");
+                            } else if (innerData.containsKey("file_path")) {
+                                apiFilePath = (String) innerData.get("file_path");
+                            }
+                        } else {
+                            // Direct check on the main data map
+                            if (data.containsKey("cleaned_file_path")) {
+                                apiFilePath = (String) data.get("cleaned_file_path");
+                            } else if (data.containsKey("file_path")) {
+                                apiFilePath = (String) data.get("file_path");
+                            }
                         }
-                    } else {
-                        // Direct check on the main data map
-                        if (data.containsKey("cleaned_file_path")) {
-                            filePath = (String) data.get("cleaned_file_path");
-                        } else if (data.containsKey("file_path")) {
-                            filePath = (String) data.get("file_path");
+                        
+                        // Store the API file path for AI processing
+                        if (apiFilePath != null) {
+                            uploadedFile.setApiFilePath(apiFilePath);
+                            System.out.println("API processing successful for file: " + file.getOriginalFilename() + 
+                                             ", API path: " + apiFilePath);
                         }
                     }
                     
-                    uploadedFile.setFilePath(filePath);
-                    
-                    // Associate with the project using projectId
-                    uploadedFile.setProjectId(project.getId());
-                    uploadedFiles.add(uploadedFile);
+                    // Save the file using UploadedFileService to get an ID
+                    IDataResult<UploadedFile> savedFileResult = uploadedFileService.create(uploadedFile);
+                    if (savedFileResult.isSuccess()) {
+                        uploadedFiles.add(savedFileResult.getData());
+                    } else {
+                        uploadedFiles.add(uploadedFile);
+                    }
+                } catch (Exception e) {
+                    // Log error and continue with next file
+                    System.err.println("Error processing file: " + e.getMessage());
                 }
             }
             
@@ -227,7 +259,11 @@ public class ProjectController {
             IDataResult<Project> updateResult = projectService.updateProjectFiles(project.getId(), uploadedFiles);
             
             if (updateResult.isSuccess()) {
-                return ResponseEntity.status(HttpStatus.CREATED).body(updateResult);
+                // Convert to ProjectResponseDto to limit what fields we show
+                ProjectResponseDto responseDto = new ProjectResponseDto(updateResult.getData());
+                return ResponseEntity.status(HttpStatus.CREATED).body(
+                    new SuccessDataResult<>(responseDto, "Project files updated successfully")
+                );
             } else {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(updateResult);
             }
