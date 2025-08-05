@@ -8,5 +8,6 @@ import java.util.List;
 
 @Repository
 public interface QuizRepository extends MongoRepository<Quiz, String> {
-    List<Quiz> findByUserId(String userId);
+    List<Quiz> findByUserIdAndFileId(String userId, String fileId);
+    List<Quiz> findByUserIdAndProjectId(String userId, String projectId);
 } 

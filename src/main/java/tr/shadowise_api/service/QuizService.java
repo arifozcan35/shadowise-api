@@ -46,6 +46,15 @@ public class QuizService {
 
     public IDataResult<Quiz> create(Quiz quiz) {
         try {
+            // Set timestamps if not already set
+            LocalDateTime now = LocalDateTime.now();
+            if (quiz.getCreatedAt() == null) {
+                quiz.setCreatedAt(now);
+            }
+            if (quiz.getUpdatedAt() == null) {
+                quiz.setUpdatedAt(now);
+            }
+            
             Quiz savedQuiz = quizRepository.save(quiz);
             return new SuccessDataResult<>(savedQuiz, "Quiz created successfully");
         } catch (Exception e) {
@@ -152,6 +161,8 @@ public class QuizService {
             // Create a new quiz with the generated questions
             Quiz quiz = new Quiz();
             String fileName = uploadedFileService.getOriginalFileName(requestDto.getFileId());
+            String projectId = uploadedFileService.getProjectId(requestDto.getFileId());
+            
             quiz.setName("Generated Quiz for " + fileName);
             quiz.setDescription("Automatically generated quiz from uploaded file");
             quiz.setLevel(QuizLevel.Intermediate); // Default level, can be changed later
@@ -160,6 +171,13 @@ public class QuizService {
             quiz.setQuestions(responseDto.getQuestions().toArray(new Question[0]));
             quiz.setLastAttempt(new Date());
             quiz.setUserId(userId);
+            quiz.setFileId(requestDto.getFileId());
+            quiz.setProjectId(projectId);
+            
+            // Set timestamps
+            LocalDateTime now = LocalDateTime.now();
+            quiz.setCreatedAt(now);
+            quiz.setUpdatedAt(now);
             
             // Save the quiz to database
             Quiz savedQuiz = quizRepository.save(quiz);
@@ -170,14 +188,26 @@ public class QuizService {
     }
 
     /**
-     * Get quizzes for a specific user
+     * Get quizzes for a specific user and file
      */
-    public IDataResult<List<Quiz>> getQuizzesByUserId(String userId) {
+    public IDataResult<List<Quiz>> getQuizzesByUserIdAndFileId(String userId, String fileId) {
         try {
-            List<Quiz> quizzes = quizRepository.findByUserId(userId);
-            return new SuccessDataResult<>(quizzes, "User quizzes retrieved successfully");
+            List<Quiz> quizzes = quizRepository.findByUserIdAndFileId(userId, fileId);
+            return new SuccessDataResult<>(quizzes, "User file quizzes retrieved successfully");
         } catch (Exception e) {
-            return new ErrorDataResult<>(null, "Failed to retrieve user quizzes: " + e.getMessage());
+            return new ErrorDataResult<>(null, "Failed to retrieve user file quizzes: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Get quizzes for a specific user and project
+     */
+    public IDataResult<List<Quiz>> getQuizzesByUserIdAndProjectId(String userId, String projectId) {
+        try {
+            List<Quiz> quizzes = quizRepository.findByUserIdAndProjectId(userId, projectId);
+            return new SuccessDataResult<>(quizzes, "User project quizzes retrieved successfully");
+        } catch (Exception e) {
+            return new ErrorDataResult<>(null, "Failed to retrieve user project quizzes: " + e.getMessage());
         }
     }
 } 

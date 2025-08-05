@@ -111,15 +111,31 @@ public class QuizController {
         }
     }
     
-    @GetMapping("/user-quizzes")
-    public ResponseEntity<?> getUserQuizzes() {
+    @GetMapping("/user-quizzes/file/{fileId}")
+    public ResponseEntity<?> getUserQuizzesByFileId(@PathVariable String fileId) {
         // Get current user
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User userDetails = (User) authentication.getPrincipal();
         String username = userDetails.getUsername();
         String userId = userRepository.findByUsername(username).orElseThrow().getId();
         
-        IDataResult<List<Quiz>> result = quizService.getQuizzesByUserId(userId);
+        IDataResult<List<Quiz>> result = quizService.getQuizzesByUserIdAndFileId(userId, fileId);
+        if (result.isSuccess()) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        }
+    }
+
+    @GetMapping("/user-quizzes/project/{projectId}")
+    public ResponseEntity<?> getUserQuizzesByProjectId(@PathVariable String projectId) {
+        // Get current user
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User userDetails = (User) authentication.getPrincipal();
+        String username = userDetails.getUsername();
+        String userId = userRepository.findByUsername(username).orElseThrow().getId();
+        
+        IDataResult<List<Quiz>> result = quizService.getQuizzesByUserIdAndProjectId(userId, projectId);
         if (result.isSuccess()) {
             return ResponseEntity.ok(result);
         } else {
