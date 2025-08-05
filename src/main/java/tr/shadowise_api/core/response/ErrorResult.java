@@ -14,4 +14,10 @@ public class ErrorResult implements IResult {
     public boolean isSuccess() {
         return success;
     }
+
+    public String getMessage() {
+        return message;
+    }
+
+
 }

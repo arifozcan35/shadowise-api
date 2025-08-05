@@ -14,4 +14,8 @@ public class SuccessResult implements IResult {
     public boolean isSuccess() {
         return success;
     }
+
+    public String getMessage() {
+        return message;
+    }
 }
