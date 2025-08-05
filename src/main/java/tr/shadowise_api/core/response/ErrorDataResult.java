@@ -21,4 +21,8 @@ public class ErrorDataResult<T> implements IDataResult<T>{
     public T getData() {
         return data;
     }
+
+    public String getMessage() {
+        return message;
+    }
 }

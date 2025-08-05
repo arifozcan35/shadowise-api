@@ -8,6 +8,7 @@ import tr.shadowise_api.core.response.IDataResult;
 import tr.shadowise_api.core.response.IResult;
 import tr.shadowise_api.entity.FlashCard;
 import tr.shadowise_api.service.FlashCardService;
+import tr.shadowise_api.dto.request.GenerateFlashcardsRequestDto;
 
 import java.util.List;
 
@@ -44,6 +45,38 @@ public class FlashCardController {
             return ResponseEntity.status(HttpStatus.CREATED).body(result);
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+        }
+    }
+
+    @PostMapping("/generate")
+    public ResponseEntity<?> generateFlashcards(@RequestBody GenerateFlashcardsRequestDto request) {
+        IDataResult<FlashCard> result = flashCardService.generateFlashcardsFromFile(
+                request.getFileId(), 
+                request.getNum_pairs());
+        if (result.isSuccess()) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(result);
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+        }
+    }
+
+    @GetMapping("/file/{fileId}")
+    public ResponseEntity<?> getFlashcardsByFileId(@PathVariable String fileId) {
+        IDataResult<List<FlashCard>> result = flashCardService.getFlashcardsByFileId(fileId);
+        if (result.isSuccess()) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+        }
+    }
+
+    @GetMapping("/project/{projectId}")
+    public ResponseEntity<?> getFlashcardsByProjectId(@PathVariable String projectId) {
+        IDataResult<List<FlashCard>> result = flashCardService.getFlashcardsByProjectId(projectId);
+        if (result.isSuccess()) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
         }
     }
 

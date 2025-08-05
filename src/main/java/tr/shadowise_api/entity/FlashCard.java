@@ -1,7 +1,5 @@
 package tr.shadowise_api.entity;
 
-import java.util.Dictionary;
-
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.validation.constraints.NotNull;
@@ -10,7 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Dictionary;
+import java.util.List;
 
 @Getter
 @Setter
@@ -21,5 +19,18 @@ public class FlashCard extends SoftDeleteEntity {
     @NotNull
     private String title;
     private String description;
-    private Dictionary<String,String> cards;
+    private String fileId;
+    private String projectId;
+    private List<FlashcardPair> flashcards;
+    private Integer numPairs;
+    private String filePath;
+    
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class FlashcardPair {
+        private String question;
+        private String answer;
+    }
 }

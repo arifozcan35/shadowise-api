@@ -10,6 +10,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GenerateFlashcardsRequestDto {
-    private String cleaned_file_path;
+    private String fileId;
     private Integer num_pairs;
 } 

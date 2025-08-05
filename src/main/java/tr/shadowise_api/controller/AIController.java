@@ -101,8 +101,14 @@ public class AIController {
     })
     @PostMapping("/generate-flashcards")
     public ResponseEntity<IDataResult<GenerateFlashcardsResponseDto>> generateFlashcards(@RequestBody GenerateFlashcardsRequestDto request) {
+        // Get API file path from file ID
+        String apiFilePath = uploadedFileService.getApiFilePath(request.getFileId());
+        if (apiFilePath == null) {
+            return ResponseEntity.badRequest().body(null);
+        }
+        
         return ResponseEntity.ok(aiService.generateFlashcards(
-                request.getCleaned_file_path(), 
+                apiFilePath, 
                 request.getNum_pairs()));
     }
     

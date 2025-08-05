@@ -13,6 +13,10 @@ public class SuccessDataResult<T> implements IDataResult<T>{
         return data;
     }
 
+    public String getMessage() {
+        return message;
+    }
+
     public SuccessDataResult (T data) {
         this.data = data;
     }
