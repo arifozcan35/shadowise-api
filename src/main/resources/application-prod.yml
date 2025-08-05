@@ -14,16 +14,6 @@ spring:
       max-request-size: 50MB
       file-size-threshold: 2KB
 
-# Python API Configuration
-python:
-  api:
-    url: ${PYTHON_API_URL}
-
-# AI API Configuration
-ai:
-  api:
-    url: ${AI_API_URL}
-
 # JWT Properties
 shadowise:
   app:
