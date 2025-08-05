@@ -2,7 +2,7 @@ spring:
   application:
     name: shadowise-api
   profiles:
-    active: dev
+    active: prod
   servlet:
     multipart:
       max-file-size: 10MB

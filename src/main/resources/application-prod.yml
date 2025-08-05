@@ -2,6 +2,11 @@ spring:
   data:
     mongodb:
       uri: "${MONGODB_URI}"
+      connection-pool:
+        max-size: 100
+        min-size: 5
+        max-wait-time: 30000
+        max-connection-life-time: 300000
   servlet:
     multipart:
       enabled: true
