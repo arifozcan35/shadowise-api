@@ -13,10 +13,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tr.shadowise_api.core.response.ErrorDataResult;
 import tr.shadowise_api.core.response.IDataResult;
+import tr.shadowise_api.entity.Project;
 import tr.shadowise_api.entity.Summary;
 import tr.shadowise_api.service.AIService;
+import tr.shadowise_api.service.ProjectService;
 import tr.shadowise_api.service.SummaryService;
 import tr.shadowise_api.service.UploadedFileService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/insights")
@@ -28,6 +32,7 @@ public class InsightController {
     private final AIService aiService;
     private final UploadedFileService uploadedFileService;
     private final SummaryService summaryService;
+    private final ProjectService projectService;
 
     @Operation(summary = "Generate Document Summary", description = "Generate summary for previously uploaded file and save it to database")
     @ApiResponses(value = {
@@ -100,6 +105,34 @@ public class InsightController {
             return ResponseEntity.ok(summary);
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(summary);
+        }
+    }
+    
+    @Operation(summary = "Get Project Summaries", description = "Retrieve all summaries for files in a specific project")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Summaries retrieved successfully",
+                content = @Content(mediaType = "application/json",
+                        schema = @Schema(implementation = Summary.class))),
+        @ApiResponse(responseCode = "404", description = "Project not found or no summaries available")
+    })
+    @GetMapping("/project/{projectId}/summaries")
+    public ResponseEntity<IDataResult<List<Summary>>> getProjectSummaries(
+            @Parameter(description = "Project ID", required = true)
+            @PathVariable String projectId) {
+        
+        // First check if project exists
+        IDataResult<Project> projectResult = projectService.getProjectById(projectId);
+        if (!projectResult.isSuccess() || projectResult.getData() == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorDataResult<>(null, "Project not found with ID: " + projectId));
+        }
+        
+        // Get summaries for the project
+        IDataResult<List<Summary>> summaries = summaryService.getSummariesByProjectIdAndUserId(projectId, null);
+        if (summaries.isSuccess()) {
+            return ResponseEntity.ok(summaries);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(summaries);
         }
     }
 }

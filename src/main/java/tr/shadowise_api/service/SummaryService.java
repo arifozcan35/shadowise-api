@@ -72,4 +72,12 @@ public class SummaryService {
         }
         return new ErrorDataResult<>(null, "Summary not found with the given parameters");
     }
+    
+    public IDataResult<List<Summary>> getSummariesByProjectIdAndUserId(String projectId, String userId) {
+        List<Summary> summaries = summaryRepository.findByProjectId(projectId);
+        if (!summaries.isEmpty()) {
+            return new SuccessDataResult<>(summaries, "Summaries retrieved successfully for project: " + projectId);
+        }
+        return new ErrorDataResult<>(null, "No summaries found for project ID: " + projectId);
+    }
 }

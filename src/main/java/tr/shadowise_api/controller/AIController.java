@@ -14,8 +14,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import tr.shadowise_api.core.response.IDataResult;
 import tr.shadowise_api.dto.request.GenerateFlashcardsRequestDto;
+import tr.shadowise_api.dto.request.GenerateProjectQuestionsRequestDto;
 import tr.shadowise_api.dto.request.GenerateQuestionsRequestDto;
 import tr.shadowise_api.dto.request.GenerateSummaryRequestDto;
+import tr.shadowise_api.service.UploadedFileService;
 import tr.shadowise_api.dto.response.GenerateFlashcardsResponseDto;
 import tr.shadowise_api.dto.response.GenerateQuestionsResponseDto;
 import tr.shadowise_api.service.AIService;
@@ -30,6 +32,7 @@ import java.util.Map;
 public class AIController {
 
     private final AIService aiService;
+    private final UploadedFileService uploadedFileService;
 
     @Operation(summary = "Health Check", description = "Check if the AI service is running and healthy")
     @ApiResponses(value = {
@@ -101,5 +104,26 @@ public class AIController {
         return ResponseEntity.ok(aiService.generateFlashcards(
                 request.getCleaned_file_path(), 
                 request.getNum_pairs()));
+    }
+    
+    @Operation(summary = "Generate Project Questions", description = "Generate quiz questions from project file")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Questions generated successfully",
+                content = @Content(mediaType = "application/json",
+                        schema = @Schema(implementation = GenerateQuestionsResponseDto.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid request data"),
+        @ApiResponse(responseCode = "500", description = "Question generation failed")
+    })
+    @PostMapping("/generate-project-questions")
+    public ResponseEntity<IDataResult<GenerateQuestionsResponseDto>> generateProjectQuestions(@RequestBody GenerateProjectQuestionsRequestDto request) {
+        // Get API file path from file ID
+        String apiFilePath = uploadedFileService.getApiFilePath(request.getFileId());
+        if (apiFilePath == null) {
+            return ResponseEntity.badRequest().body(null);
+        }
+        
+        return ResponseEntity.ok(aiService.generateQuestions(
+                apiFilePath,
+                request.getNum_questions()));
     }
 } 

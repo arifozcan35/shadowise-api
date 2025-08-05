@@ -31,4 +31,6 @@ public class Quiz extends SoftDeleteEntity{
     private Question[] questions;
     @NotNull
     private Date lastAttempt;
+    @NotNull
+    private String userId;
 }
