@@ -1,4 +1,13 @@
 FROM eclipse-temurin:21-jdk
-VOLUME /tmp
-COPY target/personneltrackingsystem-0.0.1-SNAPSHOT.jar app.jar
-ENTRYPOINT ["java", "-jar", "/app.jar"]
+
+# Set working directory
+WORKDIR /app
+
+# Copy the JAR file
+COPY target/shadowise-api-0.0.1-SNAPSHOT.jar app.jar
+
+# Expose port (Railway otomatik olarak port mapping yapar)
+EXPOSE 8080
+
+# Run the application
+ENTRYPOINT ["java", "-jar", "app.jar"]
