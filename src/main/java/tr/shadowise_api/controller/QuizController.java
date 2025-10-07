@@ -97,7 +97,6 @@ public class QuizController {
     
     @PostMapping("/generate-questions")
     public ResponseEntity<?> generateQuestions(@RequestBody GenerateProjectQuestionsRequestDto requestDto) {
-        // Get current user
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User userDetails = (User) authentication.getPrincipal();
         String username = userDetails.getUsername();
@@ -113,7 +112,6 @@ public class QuizController {
     
     @GetMapping("/user-quizzes/file/{fileId}")
     public ResponseEntity<?> getUserQuizzesByFileId(@PathVariable String fileId) {
-        // Get current user
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User userDetails = (User) authentication.getPrincipal();
         String username = userDetails.getUsername();
@@ -129,7 +127,6 @@ public class QuizController {
 
     @GetMapping("/user-quizzes/project/{projectId}")
     public ResponseEntity<?> getUserQuizzesByProjectId(@PathVariable String projectId) {
-        // Get current user
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User userDetails = (User) authentication.getPrincipal();
         String username = userDetails.getUsername();

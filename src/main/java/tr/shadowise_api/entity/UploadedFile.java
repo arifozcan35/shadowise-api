@@ -19,8 +19,8 @@ public class UploadedFile extends SoftDeleteEntity{
     @NotNull
     private String fileType;
     @NotNull
-    private String filePath; // local or S3 url for download
-    private String apiFilePath; // path from API for AI processing
+    private String filePath; 
+    private String apiFilePath; 
     @NotNull
     private String projectId;
 }

@@ -82,9 +82,6 @@ public class ProjectController {
         }
     }
 
-    /**
-     * Create a new project with JSON request body (legacy method)
-     */
     @PostMapping
     public ResponseEntity<?> createProject(@RequestBody ProjectCreateRequestDto projectCreateRequestDto) {
         try {
@@ -160,9 +157,6 @@ public class ProjectController {
         }
     }
 
-        /**
-     * Create a new project with form data, including file uploads
-     */
     @PostMapping(value = "/create-with-files", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createProjectWithFiles(
             @RequestParam("title") String title,
@@ -178,7 +172,6 @@ public class ProjectController {
                     .body("User not found");
             }
             
-            // Create the project with title and description
             IDataResult<Project> projectResult = projectService.createProject(title, description, currentUser);
             
             if (!projectResult.isSuccess()) {
@@ -187,17 +180,13 @@ public class ProjectController {
             
             Project project = projectResult.getData();
             List<UploadedFile> uploadedFiles = new ArrayList<>();
-            
-            // Process each file
+
             for (MultipartFile file : files) {
                 try {
-                    // Save the original file to the file system
                     String originalFilePath = fileUtils.storeFile(file);
                     
-                    // Use the AI service to upload PDF (for AI processing)
                     IDataResult<Map<String, Object>> uploadResult = aiService.uploadPdf(file);
                     
-                    // Create an UploadedFile entity
                     UploadedFile uploadedFile = new UploadedFile();
                     uploadedFile.setFileName(file.getOriginalFilename());
                     uploadedFile.setFileType(file.getContentType());
@@ -205,16 +194,13 @@ public class ProjectController {
                     uploadedFile.setCreatedAt(LocalDateTime.now());
                     uploadedFile.setUpdatedAt(LocalDateTime.now());
                     
-                    // Use the original file path for downloads
                     uploadedFile.setFilePath(originalFilePath);
                     
-                    // If AI processing was successful, store the API file path as well
                     if (uploadResult.isSuccess() && uploadResult.getData() != null) {
                         // Get AI processing file path from the AI service response
                         Map<String, Object> data = uploadResult.getData();
                         String apiFilePath = null;
                         
-                        // Check for data structure
                         if (data.containsKey("data") && data.get("data") instanceof Map) {
                             @SuppressWarnings("unchecked")
                             Map<String, Object> innerData = (Map<String, Object>) data.get("data");
@@ -225,7 +211,6 @@ public class ProjectController {
                                 apiFilePath = (String) innerData.get("file_path");
                             }
                         } else {
-                            // Direct check on the main data map
                             if (data.containsKey("cleaned_file_path")) {
                                 apiFilePath = (String) data.get("cleaned_file_path");
                             } else if (data.containsKey("file_path")) {
@@ -233,7 +218,6 @@ public class ProjectController {
                             }
                         }
                         
-                        // Store the API file path for AI processing
                         if (apiFilePath != null) {
                             uploadedFile.setApiFilePath(apiFilePath);
                             System.out.println("API processing successful for file: " + file.getOriginalFilename() + 
@@ -241,7 +225,6 @@ public class ProjectController {
                         }
                     }
                     
-                    // Save the file using UploadedFileService to get an ID
                     IDataResult<UploadedFile> savedFileResult = uploadedFileService.create(uploadedFile);
                     if (savedFileResult.isSuccess()) {
                         uploadedFiles.add(savedFileResult.getData());
@@ -249,12 +232,10 @@ public class ProjectController {
                         uploadedFiles.add(uploadedFile);
                     }
                 } catch (Exception e) {
-                    // Log error and continue with next file
                     System.err.println("Error processing file: " + e.getMessage());
                 }
             }
             
-            // Update the project with uploaded files
             project.setUploadedFiles(uploadedFiles);
             IDataResult<Project> updateResult = projectService.updateProjectFiles(project.getId(), uploadedFiles);
             

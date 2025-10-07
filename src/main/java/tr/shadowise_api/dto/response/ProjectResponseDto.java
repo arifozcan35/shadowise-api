@@ -22,7 +22,7 @@ public class ProjectResponseDto {
     private String[] tags;
     private String[] documents;
     private String[] insights;
-    private String ownerId;  // Only include the owner's ID
+    private String ownerId;  
     private List<UploadedFile> uploadedFiles;
     private List<Note> notes;
     

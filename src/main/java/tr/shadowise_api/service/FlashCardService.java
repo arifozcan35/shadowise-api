@@ -76,21 +76,15 @@ public class FlashCardService {
         }
     }
 
-    /**
-     * Generate flashcards from file using AI service
-     */
     public IDataResult<FlashCard> generateFlashcardsFromFile(String fileId, Integer numPairs) {
         try {
-            // Get API file path from file ID
             String apiFilePath = uploadedFileService.getApiFilePath(fileId);
             if (apiFilePath == null) {
                 return new ErrorDataResult<>(null, "File not found with id: " + fileId);
             }
             
-            // Get project ID from file
             String projectId = uploadedFileService.getProjectId(fileId);
             
-            // Call AI service to generate flashcards
             IDataResult<GenerateFlashcardsResponseDto> aiResult = aiService.generateFlashcards(apiFilePath, numPairs);
             
             if (!aiResult.isSuccess()) {
@@ -99,7 +93,6 @@ public class FlashCardService {
             
             GenerateFlashcardsResponseDto aiResponse = aiResult.getData();
             
-            // Create FlashCard entity
             FlashCard flashCard = new FlashCard();
             flashCard.setTitle("Flashcards for file: " + fileId);
             flashCard.setDescription("AI generated flashcards");
@@ -108,7 +101,6 @@ public class FlashCardService {
             flashCard.setNumPairs(numPairs);
             flashCard.setFilePath(aiResponse.getFile_path());
             
-            // Convert AI response to FlashCard entity format
             List<FlashCard.FlashcardPair> flashcardPairs = new java.util.ArrayList<>();
             for (FlashcardPair pair : aiResponse.getFlashcards()) {
                 FlashCard.FlashcardPair entityPair = new FlashCard.FlashcardPair();
@@ -118,7 +110,6 @@ public class FlashCardService {
             }
             flashCard.setFlashcards(flashcardPairs);
             
-            // Save to database
             flashCard.setCreatedAt(LocalDateTime.now());
             flashCard.setUpdatedAt(LocalDateTime.now());
             FlashCard savedFlashCard = flashCardRepository.save(flashCard);
@@ -129,9 +120,6 @@ public class FlashCardService {
         }
     }
 
-    /**
-     * Get flashcards by file ID
-     */
     public IDataResult<List<FlashCard>> getFlashcardsByFileId(String fileId) {
         try {
             List<FlashCard> flashCards = flashCardRepository.findByFileId(fileId);
@@ -141,9 +129,6 @@ public class FlashCardService {
         }
     }
 
-    /**
-     * Get flashcards by project ID
-     */
     public IDataResult<List<FlashCard>> getFlashcardsByProjectId(String projectId) {
         try {
             List<FlashCard> flashCards = flashCardRepository.findByProjectId(projectId);
@@ -153,9 +138,6 @@ public class FlashCardService {
         }
     }
 
-    /**
-     * Soft delete flashCard
-     */
     public IResult softDeleteFlashCard(String id) {
         try {
             Optional<FlashCard> existingFlashCard = flashCardRepository.findById(id);
@@ -174,9 +156,6 @@ public class FlashCardService {
         }
     }
 
-    /**
-     * Hard delete flashCard
-     */
     public IResult deleteFlashCard(String id) {
         try {
             if (flashCardRepository.existsById(id)) {
@@ -190,16 +169,11 @@ public class FlashCardService {
         }
     }
     
-    /**
-     * Check if flashCard exists
-     */
     public boolean flashCardExists(String id) {
         return flashCardRepository.existsById(id);
     }
 
-    /**
-     * Get flashCard count
-     */
+
     public long getFlashCardCount() {
         return flashCardRepository.count();
     }

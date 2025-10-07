@@ -73,14 +73,12 @@ public class InsightController {
                 .body(new ErrorDataResult<>(null, "Failed to generate summary"));
         }
         
-        // Save summary to database
         Summary summary = new Summary();
         summary.setContent(summaryResult.getData());
         summary.setFileId(fileId);
         summary.setMaxWords(maxWords);
         summary.setTemperature(temperature);
         
-        // Get and set the project ID
         String projectId = uploadedFileService.getProjectId(fileId);
         summary.setProjectId(projectId);
         
@@ -120,14 +118,12 @@ public class InsightController {
             @Parameter(description = "Project ID", required = true)
             @PathVariable String projectId) {
         
-        // First check if project exists
         IDataResult<Project> projectResult = projectService.getProjectById(projectId);
         if (!projectResult.isSuccess() || projectResult.getData() == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ErrorDataResult<>(null, "Project not found with ID: " + projectId));
         }
         
-        // Get summaries for the project
         IDataResult<List<Summary>> summaries = summaryService.getSummariesByProjectIdAndUserId(projectId, null);
         if (summaries.isSuccess()) {
             return ResponseEntity.ok(summaries);

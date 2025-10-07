@@ -24,22 +24,17 @@ public class FeignClientConfig {
     @Bean
     public RequestInterceptor requestInterceptor() {
         return requestTemplate -> {
-            // Check if this is a multipart request by looking at the URL path
             String url = requestTemplate.url();
             boolean isMultipartRequest = url.contains("/upload-pdf") || url.contains("upload");
             
             if (!isMultipartRequest) {
-                // İstek başlıkları ekle (sadece multipart olmayan istekler için)
                 requestTemplate.header("Accept", "application/json");
                 requestTemplate.header("Content-Type", "application/json");
             } else {
-                // Multipart istekler için sadece Accept header'ı ekle
-                // Content-Type'ı Feign otomatik olarak multipart/form-data yapacak
+    
                 requestTemplate.header("Accept", "application/json");
             }
             
-            // Örnek olarak kimlik doğrulama eklenebilir
-            // requestTemplate.header("Authorization", "Bearer " + jwtToken);
         };
     }
 
@@ -52,7 +47,6 @@ public class FeignClientConfig {
     @Bean
     public ErrorDecoder errorDecoder() {
         return (methodKey, response) -> {
-            // Hata yönetimini özelleştirme
             int status = response.status();
             
             if (status >= 400 && status < 500) {

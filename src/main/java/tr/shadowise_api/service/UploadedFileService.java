@@ -75,9 +75,6 @@ public class UploadedFileService {
         }
     }
 
-    /**
-     * Soft delete file
-     */
     public IResult softDeleteFile(String id) {
         try {
             Optional<UploadedFile> existingFile = uploadedFileRepository.findById(id);
@@ -96,9 +93,6 @@ public class UploadedFileService {
         }
     }
 
-    /**
-     * Hard delete file
-     */
     public IResult deleteFile(String id) {
         try {
             if (uploadedFileRepository.existsById(id)) {
@@ -112,23 +106,14 @@ public class UploadedFileService {
         }
     }
     
-    /**
-     * Check if file exists
-     */
     public boolean fileExists(String id) {
         return uploadedFileRepository.existsById(id);
     }
 
-    /**
-     * Get file count
-     */
     public long getFileCount() {
         return uploadedFileRepository.count();
     }
     
-    /**
-     * Load file as Resource for download
-     */
     public IDataResult<Resource> loadFileAsResource(String id) {
         try {
             Optional<UploadedFile> fileOptional = uploadedFileRepository.findById(id);
@@ -156,25 +141,16 @@ public class UploadedFileService {
         }
     }
     
-    /**
-     * Get original file name (without path)
-     */
     public String getOriginalFileName(String id) {
         Optional<UploadedFile> fileOptional = uploadedFileRepository.findById(id);
         return fileOptional.map(UploadedFile::getFileName).orElse("unknown");
     }
     
-    /**
-     * Get API file path for AI processing
-     */
     public String getApiFilePath(String id) {
         Optional<UploadedFile> fileOptional = uploadedFileRepository.findById(id);
         return fileOptional.map(UploadedFile::getApiFilePath).orElse(null);
     }
-    
-    /**
-     * Get project ID of a file
-     */
+        
     public String getProjectId(String fileId) {
         Optional<UploadedFile> fileOptional = uploadedFileRepository.findById(fileId);
         return fileOptional.map(UploadedFile::getProjectId).orElse(null);

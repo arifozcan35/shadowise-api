@@ -20,7 +20,6 @@ public class SummaryService {
 
     public IDataResult<Summary> saveSummary(Summary summary) {
         try {
-            // Set creation and update times
             if (summary.getCreatedAt() == null) {
                 summary.setCreatedAt(LocalDateTime.now());
             }

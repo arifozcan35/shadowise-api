@@ -92,9 +92,6 @@ public class UploadedFileController {
         return ResponseEntity.ok("File exists: " + exists);
     }
     
-    /**
-     * Download file endpoint
-     */
     @GetMapping("/download/{id}")
     public ResponseEntity<?> downloadFile(@PathVariable String id) {
         IDataResult<Resource> resourceResult = uploadedFileService.loadFileAsResource(id);
@@ -112,9 +109,6 @@ public class UploadedFileController {
         }
     }
     
-    /**
-     * Get API file path
-     */
     @GetMapping("/api-path/{id}")
     public ResponseEntity<?> getApiFilePath(@PathVariable String id) {
         String apiFilePath = uploadedFileService.getApiFilePath(id);

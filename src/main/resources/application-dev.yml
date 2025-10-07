@@ -1,7 +1,7 @@
 spring:
   data:
     mongodb:
-      uri: "mongodb://localhost:27017/shadowise"
+      uri: "mongodb://localhost:your_port/shadowise"
 
   security:
     user:
@@ -40,6 +40,6 @@ ai:
 # JWT Properties
 shadowise:
   app:
-    jwtSecret: oRq8/8RJaQ1Rnqd32P7m85FWfBOMqtPFcD1cby6fLOKWEHf4iLSbkAvi/H+wCsS5F2cHX2LhUqfkYRcUBFVpNQ==
+    jwtSecret: your_jwt_secret
     jwtExpirationMs: 3600000
     jwtRefreshExpirationMs: 86400000

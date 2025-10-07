@@ -8,8 +8,6 @@ import tr.shadowise_api.core.response.IResult;
 import tr.shadowise_api.core.response.SuccessDataResult;
 import tr.shadowise_api.core.response.SuccessResult;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Service

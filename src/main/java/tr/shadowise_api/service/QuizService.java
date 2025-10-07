@@ -86,9 +86,6 @@ public class QuizService {
         }
     }
 
-    /**
-     * Soft delete quiz
-     */
     public IResult softDeleteQuiz(String id) {
         try {
             Optional<Quiz> existingQuiz = quizRepository.findById(id);
@@ -107,9 +104,6 @@ public class QuizService {
         }
     }
 
-    /**
-     * Hard delete quiz
-     */
     public IResult deleteQuiz(String id) {
         try {
             if (quizRepository.existsById(id)) {
@@ -123,26 +117,16 @@ public class QuizService {
         }
     }
     
-    /**
-     * Check if quiz exists
-     */
     public boolean quizExists(String id) {
         return quizRepository.existsById(id);
     }
 
-    /**
-     * Get quiz count
-     */
     public long getQuizCount() {
         return quizRepository.count();
     }
 
-    /**
-     * Generate quiz questions from uploaded file
-     */
     public IDataResult<Quiz> generateQuestionsFromFile(GenerateProjectQuestionsRequestDto requestDto, String userId) {
         try {
-            // Get file information
             String apiFilePath = uploadedFileService.getApiFilePath(requestDto.getFileId());
             if (apiFilePath == null) {
                 return new ErrorDataResult<>(null, "File not found with id: " + requestDto.getFileId());
@@ -158,28 +142,25 @@ public class QuizService {
             
             GenerateQuestionsResponseDto responseDto = questionsResult.getData();
             
-            // Create a new quiz with the generated questions
             Quiz quiz = new Quiz();
             String fileName = uploadedFileService.getOriginalFileName(requestDto.getFileId());
             String projectId = uploadedFileService.getProjectId(requestDto.getFileId());
             
             quiz.setName("Generated Quiz for " + fileName);
             quiz.setDescription("Automatically generated quiz from uploaded file");
-            quiz.setLevel(QuizLevel.Intermediate); // Default level, can be changed later
-            quiz.setTimeLimit(0); // No time limit by default
-            quiz.setBestScore(0.0); // No score yet
+            quiz.setLevel(QuizLevel.Intermediate); 
+            quiz.setTimeLimit(0); 
+            quiz.setBestScore(0.0); 
             quiz.setQuestions(responseDto.getQuestions().toArray(new Question[0]));
             quiz.setLastAttempt(new Date());
             quiz.setUserId(userId);
             quiz.setFileId(requestDto.getFileId());
             quiz.setProjectId(projectId);
             
-            // Set timestamps
             LocalDateTime now = LocalDateTime.now();
             quiz.setCreatedAt(now);
             quiz.setUpdatedAt(now);
             
-            // Save the quiz to database
             Quiz savedQuiz = quizRepository.save(quiz);
             return new SuccessDataResult<>(savedQuiz, "Quiz generated successfully");
         } catch (Exception e) {
@@ -187,9 +168,6 @@ public class QuizService {
         }
     }
 
-    /**
-     * Get quizzes for a specific user and file
-     */
     public IDataResult<List<Quiz>> getQuizzesByUserIdAndFileId(String userId, String fileId) {
         try {
             List<Quiz> quizzes = quizRepository.findByUserIdAndFileId(userId, fileId);
@@ -199,9 +177,6 @@ public class QuizService {
         }
     }
 
-    /**
-     * Get quizzes for a specific user and project
-     */
     public IDataResult<List<Quiz>> getQuizzesByUserIdAndProjectId(String userId, String projectId) {
         try {
             List<Quiz> quizzes = quizRepository.findByUserIdAndProjectId(userId, projectId);

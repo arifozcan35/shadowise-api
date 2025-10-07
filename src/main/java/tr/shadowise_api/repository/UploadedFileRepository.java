@@ -6,5 +6,5 @@ import tr.shadowise_api.entity.UploadedFile;
 
 @Repository
 public interface UploadedFileRepository extends MongoRepository<UploadedFile, String> {
-    // Custom query methods can be added here if needed
+
 } 

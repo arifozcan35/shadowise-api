@@ -20,9 +20,6 @@ import java.util.Optional;
 public class ProjectService {
     private final ProjectRepository projectRepository;
 
-    /**
-     * Create a new project from ProjectCreateRequestDto
-     */
     public IDataResult<Project> createProject(ProjectCreateRequestDto requestDto, User owner) {
         try {
             Project project = new Project();
@@ -33,7 +30,6 @@ public class ProjectService {
             project.setCreatedAt(LocalDateTime.now());
             project.setUpdatedAt(LocalDateTime.now());
             
-            // Initialize empty arrays for tags, documents, and insights
             project.setTags(new String[0]);
             project.setDocuments(new String[0]);
             project.setInsights(new String[0]);
@@ -45,9 +41,6 @@ public class ProjectService {
         }
     }
 
-    /**
-     * Get all projects
-     */
     public IDataResult<List<Project>> getAllProjects() {
         try {
             List<Project> projects = projectRepository.findAll();
@@ -57,9 +50,6 @@ public class ProjectService {
         }
     }
 
-    /**
-     * Get project by ID
-     */
     public IDataResult<Project> getProjectById(String id) {
         try {
             Optional<Project> project = projectRepository.findById(id);
@@ -73,9 +63,6 @@ public class ProjectService {
         }
     }
 
-    /**
-     * Get projects by owner
-     */
     public IDataResult<List<Project>> getProjectsByOwner(User owner) {
         try {
             List<Project> projects = projectRepository.findAll().stream()
@@ -88,9 +75,6 @@ public class ProjectService {
         }
     }
 
-    /**
-     * Create a new project with title and description
-     */
     public IDataResult<Project> createProject(String title, String description, User owner) {
         try {
             Project project = new Project();
@@ -100,11 +84,10 @@ public class ProjectService {
             project.setCreatedAt(LocalDateTime.now());
             project.setUpdatedAt(LocalDateTime.now());
             
-            // Initialize empty arrays for tags, documents, and insights
             project.setTags(new String[0]);
             project.setDocuments(new String[0]);
             project.setInsights(new String[0]);
-            project.setUploadedFiles(new ArrayList<>()); // Initialize empty list for uploaded files
+            project.setUploadedFiles(new ArrayList<>()); 
             
             Project savedProject = projectRepository.save(project);
             return new SuccessDataResult<>(savedProject, "Project created successfully");
@@ -113,9 +96,6 @@ public class ProjectService {
         }
     }
     
-    /**
-     * Update project files
-     */
     public IDataResult<Project> updateProjectFiles(String id, List<UploadedFile> uploadedFiles) {
         try {
             Optional<Project> existingProject = projectRepository.findById(id);
@@ -134,9 +114,6 @@ public class ProjectService {
         }
     }
 
-    /**
-     * Update project
-     */
     public IDataResult<Project> updateProject(String id, ProjectCreateRequestDto requestDto) {
         try {
             Optional<Project> existingProject = projectRepository.findById(id);
@@ -157,9 +134,6 @@ public class ProjectService {
         }
     }
 
-    /**
-     * Update project tags
-     */
     public IDataResult<Project> updateProjectTags(String id, String[] tags) {
         try {
             Optional<Project> existingProject = projectRepository.findById(id);
@@ -178,9 +152,6 @@ public class ProjectService {
         }
     }
 
-    /**
-     * Update project documents
-     */
     public IDataResult<Project> updateProjectDocuments(String id, String[] documents) {
         try {
             Optional<Project> existingProject = projectRepository.findById(id);
@@ -199,9 +170,6 @@ public class ProjectService {
         }
     }
 
-    /**
-     * Update project insights
-     */
     public IDataResult<Project> updateProjectInsights(String id, String[] insights) {
         try {
             Optional<Project> existingProject = projectRepository.findById(id);
@@ -220,9 +188,6 @@ public class ProjectService {
         }
     }
 
-    /**
-     * Soft delete project
-     */
     public IResult softDeleteProject(String id) {
         try {
             Optional<Project> existingProject = projectRepository.findById(id);
@@ -241,9 +206,6 @@ public class ProjectService {
         }
     }
 
-    /**
-     * Hard delete project
-     */
     public IResult deleteProject(String id) {
         try {
             if (projectRepository.existsById(id)) {
@@ -257,30 +219,19 @@ public class ProjectService {
         }
     }
 
-    /**
-     * Check if project exists
-     */
     public boolean projectExists(String id) {
         return projectRepository.existsById(id);
     }
 
-    /**
-     * Get project count
-     */
     public long getProjectCount() {
         return projectRepository.count();
     }
     
-    /**
-     * Get dashboard statistics
-     * Returns total projects count and total documents count
-     */
     public IDataResult<DashboardStatsResponseDto> getDashboardStats() {
         try {
             List<Project> projects = projectRepository.findAll();
             long totalProjects = projects.size();
             
-            // Calculate total documents across all projects
             long totalDocuments = projects.stream()
                     .filter(project -> project.getDocuments() != null)
                     .mapToLong(project -> project.getDocuments().length)

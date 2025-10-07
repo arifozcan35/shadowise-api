@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class Note {
     private String title;
-    private String content; // It can be HTML or Markdown
+    private String content; 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Project project;
